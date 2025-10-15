@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mobile Hardware Spares</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    form {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+      gap: 10px;
+    }
+
+    input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mobile Hardware Spares</h1>
+
+  <div class="container">
+    <div>
+      <h2>All Spares</h2>
+      <table id="sparesTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Brand</th>
+            <th>Price</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div>
+      <h2>Add / Update Spare</h2>
+      <form id="spareForm">
+        <input type="hidden" id="spareId" />
+        <input type="text" id="type" placeholder="Type" required />
+        <input type="text" id="brand" placeholder="Brand" required />
+        <input type="number" id="price" placeholder="Price" required />
+        <button type="submit">Save</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:8080/api/spares';
+
+    // Fetch and display all spares
+    async function loadSpares() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      const tbody = document.querySelector('#sparesTable tbody');
+      tbody.innerHTML = '';
+
+      data.forEach(spare => {
+        const row = `
+          <tr>
+            <td>${spare.id}</td>
+            <td>${spare.type}</td>
+            <td>${spare.brand}</td>
+            <td>₹${spare.price}</td>
+            <td>
+              <button onclick="editSpare(${spare.id})">Edit</button>
+              <button onclick="deleteSpare(${spare.id})">Delete</button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Add or update spare
+    document.getElementById('spareForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('spareId').value;
+      const type = document.getElementById('type').value;
+      const brand = document.getElementById('brand').value;
+      const price = document.getElementById('price').value;
+
+      const spare = { type, brand, price };
+
+      if (id) {
+        await fetch(`${API_URL}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(spare)
+        });
+      } else {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(spare)
+        });
+      }
+
+      e.target.reset();
+      document.getElementById('spareId').value = '';
+      loadSpares();
+    });
+
+    // Edit spare
+    async function editSpare(id) {
+      const res = await fetch(`${API_URL}/${id}`);
+      const spare = await res.json();
+      document.getElementById('spareId').value = spare.id;
+      document.getElementById('type').value = spare.type;
+      document.getElementById('brand').value = spare.brand;
+      document.getElementById('price').value = spare.price;
+    }
+
+    // Delete spare
+    async function deleteSpare(id) {
+      if (confirm('Are you sure you want to delete this spare?')) {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        loadSpares();
+      }
+    }
+
+    // Load data on page start
+    loadSpares();
+  </script>
+</body>
+</html>

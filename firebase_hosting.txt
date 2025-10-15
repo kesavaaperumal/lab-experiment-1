@@ -1,0 +1,15 @@
+firebase hosting:
+npm install firebase
+npm install -g firebase-tools
+firebase --version
+npx create-react-app sampleapp
+cd sampleapp
+open files->sampleapp->src->change app.js remove <header> tag and type anything->save
+npm start
+ctrl+c (yes)
+npm run build
+(no,no)
+firebase login 
+firebase init hosting 
+select user existing, type build,no,no,no
+firebase deploy
